@@ -1,0 +1,55 @@
+# Make sure the metadata name of this configmap matches the one given in the volumes section of the deployment
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-es-config
+  labels:
+{{ toYaml .Values.metadata.labels | indent 4}}
+data:
+  fluent-bit.conf: |-
+    # Logs from systemd-journal because we're on CentOS7/RHEL7
+    <source>
+      @type systemd
+      path /run/log/journal
+      filters [{ "_SYSTEMD_UNIT": "docker.service" }]
+      read_from_head true
+      tag docker
+    </source>
+
+    <source>
+      @type systemd
+      path /run/log/journal
+      filters [{ "_SYSTEMD_UNIT": "kubelet.service" }]
+      read_from_head true
+      tag kubelet
+    </source>
+
+    # Takes the messages sent over TCP
+    <source>
+      @type forward
+    </source>
+
+    # Enriches records with Kubernetes metadata
+    <filter kubernetes.**>
+      @type kubernetes_metadata
+    </filter>
+
+    <match **>
+       @type elasticsearch
+       log_level info
+       include_tag_key true
+       host elasticsearch-logging
+       # This needs to match the db port on the ElasticSearch Container
+       port 9200
+       logstash_format true
+       # Set the chunk limits.
+       buffer_chunk_limit 2M
+       buffer_queue_limit 8
+       flush_interval 5s
+       # Never wait longer than 5 minutes between retries.
+       max_retry_wait 30
+       # Disable the limit on the number of retries (retry forever).
+       disable_retry_limit
+       # Use multiple threads for processing.
+       num_threads 2
+    </match>

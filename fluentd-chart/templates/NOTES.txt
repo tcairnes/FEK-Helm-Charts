@@ -1,0 +1,2 @@
+1. This configuration of fluentd is setup to forward journald logs to ElasticSearch.
+2. It will do so under the assumption that there is a service named 'elastic-logging' in your cluster.

@@ -1,0 +1,59 @@
+# Default values for elastic-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 2
+
+image:
+  repository: gcr.io/google-containers/elasticsearch
+  tag: v5.5.1-1
+  pullPolicy: IfNotPresent
+
+env:
+- name: "NAMESPACE"
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace
+
+ports:
+- containerPort: 9200
+  name: db
+  protocol: TCP
+- containerPort: 9300
+  name: transport
+  protocol: TCP
+
+volumeMounts:
+- name: elasticsearch-logging
+  mountPath: /data
+
+volumes:
+- name: elasticsearch-logging
+  emptyDir: {}
+
+metadata:
+  name: elasticsearch-logging
+  labels:
+    k8s-app: elasticsearch-logging
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+
+resources:
+  limits:
+    cpu: 1000m
+  requests:
+    cpu: 100m
+
+
+# ingress:
+#   enabled: false
+#   # Used to create an Ingress record.
+#   hosts:
+#     - chart-example.local
+#   annotations:
+#     # kubernetes.io/ingress.class: nginx
+#     # kubernetes.io/tls-acme: "true"
+#   tls:
+#     # Secrets must be manually created in the namespace.
+#     # - secretName: chart-example-tls
+#     #   hosts:
+#     #     - chart-example.local

@@ -1,0 +1,46 @@
+# Elasticsearch deployment itself
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.metadata.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ toYaml .Values.metadata.labels | indent 4 }}
+    version: {{ .Values.image.tag }}
+spec:
+  serviceName: {{ .Values.metadata.name }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      k8s-app: {{ .Values.metadata.name }}
+      version: {{ .Values.image.tag }}
+  template:
+    metadata:
+      labels:
+{{ toYaml .Values.metadata.labels | indent 8 }}
+        version: {{ .Values.image.tag }}
+    spec:
+      serviceAccountName: {{ .Values.metadata.name }}
+      containers:
+      - image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        name: {{ .Values.metadata.name }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+{{ toYaml .Values.ports | indent 8 }}
+        volumeMounts:
+{{ toYaml .Values.volumeMounts | indent 8 }}
+        env:
+{{ toYaml .Values.env | indent 8 }}
+      volumes:
+{{ toYaml .Values.volumes | indent 6 }}
+      # Elasticsearch requires vm.max_map_count to be at least 262144.
+      # If your OS already sets up this number to a higher value, feel free
+      # to remove this init container.
+      initContainers:
+      - image: alpine:3.6
+        command: ["/sbin/sysctl", "-w", "vm.max_map_count=262144"]
+        name: elasticsearch-logging-init
+        securityContext:
+          privileged: true

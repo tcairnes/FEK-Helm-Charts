@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Values.metadata.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ toYaml .Values.metadata.labels | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      k8s-app: {{ .Values.metadata.name }}
+  template:
+    metadata:
+      labels:
+        k8s-app: {{ .Values.metadata.name }}
+    spec:
+      containers:
+      - name: {{ .Values.metadata.name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        env:
+        - name: SERVER_BASEPATH
+          value: "/api/v1/proxy/namespaces/{{ .Release.Namespace }}/services/kibana-logging"
+{{ toYaml .Values.env | indent 8 }}
+        ports:
+{{ toYaml .Values.ports | indent 8 }}

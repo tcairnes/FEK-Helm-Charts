@@ -1,0 +1,16 @@
+# Just make sure that the ports for the service is pointed at the db port defined on the container
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.metadata.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ toYaml .Values.metadata.labels | indent 4 }}
+    kubernetes.io/name: "Elasticsearch"
+spec:
+  ports:
+  - port: 9200
+    protocol: TCP
+    targetPort: db
+  selector:
+    k8s-app: {{ .Values.metadata.name }}
