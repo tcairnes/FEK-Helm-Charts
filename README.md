@@ -19,3 +19,7 @@ helm install --name elastic --namespace logging ./elastic-chart/
 
 My experience found that 7 minutes was the smallest gap I could leave before deploying ElasticSearch that didn't break the Cluster.
 However I am unsure as to whether `sleep` could be impacting this wait time, if you can't get the entire solution up using the script I suggest entering the first two commands of the script then leaving some amount of time without using `sleep` before deploying the ElasticSearch component.
+
+One important thing to note is that the machines my cluster was running on would often become unresponsive as the `ElasticSearch` pods were intialised. Waiting between deploying `Fluentd + Kibana` and `ElasticSearch` reduced the chance of this but I also found that just leaving the cluster to set up the pods eventually resulted in it becoming responsive again.
+
+It's entirely possible the reason I was experiencing this was because I was testing on a `Kubernetes` cluster on `Vagrant VMs`.
